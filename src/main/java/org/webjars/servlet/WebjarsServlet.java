@@ -1,5 +1,6 @@
 package org.webjars.servlet;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -33,9 +34,20 @@ public class WebjarsServlet extends HttpServlet {
     private static final long DEFAULT_EXPIRE_TIME_MS = 86400000L; // 1 day
     private static final long DEFAULT_EXPIRE_TIME_S = 86400L; // 1 day
 
+    private boolean disableCache = false;
+
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        doGet(request, response);
+    public void init(ServletConfig config) throws ServletException {
+        try {
+            String disableCache = config.getInitParameter("disableCache");
+            if (disableCache != null) {
+                this.disableCache = Boolean.parseBoolean(disableCache);
+                logger.log(Level.INFO, "WebjarsServlet cache enabled: " + !this.disableCache);
+            }
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "The WebjarsServlet configuration parameter \"disableCache\" is invalid");
+        }
+        logger.log(Level.INFO, "WebjarsServlet initialization completed");
     }
 
     @Override
@@ -44,7 +56,9 @@ public class WebjarsServlet extends HttpServlet {
         logger.log(Level.INFO, "Webjars resource requested: " + webjarsResourceURI);
         InputStream inputStream = this.getClass().getResourceAsStream(webjarsResourceURI);
         if (inputStream != null) {
-            prepareChacheHeaders(response, webjarsResourceURI);
+            if (!disableCache) {
+                prepareCacheHeaders(response, webjarsResourceURI);
+            }
             copy(inputStream, response.getOutputStream());
         } else {
             // return HTTP error
@@ -57,7 +71,7 @@ public class WebjarsServlet extends HttpServlet {
      * @param response
      * @param webjarsResourceURI
      */
-    private void prepareChacheHeaders(HttpServletResponse response, String webjarsResourceURI) {
+    private void prepareCacheHeaders(HttpServletResponse response, String webjarsResourceURI) {
         String[] tokens = webjarsResourceURI.split("/");
         String version = tokens[5];
         String fileName = tokens[tokens.length - 1];
@@ -73,10 +87,7 @@ public class WebjarsServlet extends HttpServlet {
     /* The reason is becasue I don't want to include any more dependencies */
 
     /**
-     * The default buffer size ({@value}) to use for
-     * {@link #copyLarge(InputStream, java.io.OutputStream)}
-     * and
-     * {@link #copyLarge(java.io.InputStream, java.io.OutputStream)}
+     * The default buffer size ({@value}) to use
      */
     private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
@@ -104,58 +115,16 @@ public class WebjarsServlet extends HttpServlet {
      * @since 1.1
      */
     private static int copy(InputStream input, OutputStream output) throws IOException {
-        long count = copyLarge(input, output);
-        if (count > Integer.MAX_VALUE) {
-            return -1;
-        }
-        return (int) count;
-    }
-
-    /**
-     * Copy bytes from a large (over 2GB) <code>InputStream</code> to an
-     * <code>OutputStream</code>.
-     * <p>
-     * This method buffers the input internally, so there is no need to use a
-     * <code>BufferedInputStream</code>.
-     * <p>
-     * The buffer size is given by {@link #DEFAULT_BUFFER_SIZE}.
-     *
-     * @param input  the <code>InputStream</code> to read from
-     * @param output  the <code>OutputStream</code> to write to
-     * @return the number of bytes copied
-     * @throws NullPointerException if the input or output is null
-     * @throws IOException if an I/O error occurs
-     * @since 1.3
-     */
-    private static long copyLarge(InputStream input, OutputStream output)
-            throws IOException {
-        return copyLarge(input, output, new byte[DEFAULT_BUFFER_SIZE]);
-    }
-
-    /**
-     * Copy bytes from a large (over 2GB) <code>InputStream</code> to an
-     * <code>OutputStream</code>.
-     * <p>
-     * This method uses the provided buffer, so there is no need to use a
-     * <code>BufferedInputStream</code>.
-     * <p>
-     *
-     * @param input  the <code>InputStream</code> to read from
-     * @param output  the <code>OutputStream</code> to write to
-     * @param buffer the buffer to use for the copy
-     * @return the number of bytes copied
-     * @throws NullPointerException if the input or output is null
-     * @throws IOException if an I/O error occurs
-     * @since 2.2
-     */
-    private static long copyLarge(InputStream input, OutputStream output, byte[] buffer)
-            throws IOException {
         long count = 0;
         int n = 0;
+        byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
         while (EOF != (n = input.read(buffer))) {
             output.write(buffer, 0, n);
             count += n;
         }
-        return count;
+        if (count > Integer.MAX_VALUE) {
+            return -1;
+        }
+        return (int) count;
     }
 }
