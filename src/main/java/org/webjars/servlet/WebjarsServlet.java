@@ -25,7 +25,7 @@ import java.util.logging.Logger;
      &lt;url-pattern&gt;/webjars/*&lt;/url-pattern&gt;
  &lt;/servlet-mapping&gt;œ
  </pre>
- * @author Angel Ruiz<aruizca@gmail.com>
+ * @author Angel Ruiz&lt;aruizca@gmail.com&gt;
  */
 public class WebjarsServlet extends HttpServlet {
 
