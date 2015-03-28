@@ -56,10 +56,10 @@ public class WebjarsServlet extends HttpServlet {
         logger.log(Level.INFO, "Webjars resource requested: " + webjarsResourceURI);
         InputStream inputStream = this.getClass().getResourceAsStream(webjarsResourceURI);
         if (inputStream != null) {
-            String filename = getFileName(webjarsResourceURI);
             if (!disableCache) {
                 prepareCacheHeaders(response, webjarsResourceURI);
             }
+            String filename = getFileName(webjarsResourceURI);
             String mimeType = getServletContext().getMimeType(filename);
             response.setContentType(mimeType != null? mimeType:"application/octet-stream");
             copy(inputStream, response.getOutputStream());
