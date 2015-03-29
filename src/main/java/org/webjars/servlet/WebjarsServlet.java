@@ -59,11 +59,24 @@ public class WebjarsServlet extends HttpServlet {
             if (!disableCache) {
                 prepareCacheHeaders(response, webjarsResourceURI);
             }
+            String filename = getFileName(webjarsResourceURI);
+            String mimeType = request.getSession().getServletContext().getMimeType(filename);
+            response.setContentType(mimeType != null? mimeType:"application/octet-stream");
             copy(inputStream, response.getOutputStream());
         } else {
             // return HTTP error
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
+    }
+
+    /**
+     *
+     * @param webjarsResourceURI
+     * @return
+     */
+    private String getFileName(String webjarsResourceURI) {
+        String[] tokens = webjarsResourceURI.split("/");
+        return tokens[tokens.length - 1];
     }
 
     /**
