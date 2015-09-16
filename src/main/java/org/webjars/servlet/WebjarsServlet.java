@@ -37,7 +37,11 @@ public class WebjarsServlet extends HttpServlet {
     private boolean disableCache = false;
 
     @Override
-    public void init(ServletConfig config) throws ServletException {
+    public void init() throws ServletException {
+        ServletConfig config = getServletConfig();
+        if(config == null) {
+            throw new NullPointerException("Expected servlet container to provide a non-null ServletConfig.");
+        }
         try {
             String disableCache = config.getInitParameter("disableCache");
             if (disableCache != null) {
