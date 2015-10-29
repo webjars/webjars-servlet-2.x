@@ -58,10 +58,21 @@ public class WebjarsServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String webjarsResourceURI = "/META-INF/resources" + request.getRequestURI().replaceFirst(request.getContextPath(), "");
         logger.log(Level.INFO, "Webjars resource requested: " + webjarsResourceURI);
+        
+        String eTagName = this.getETagName(webjarsResourceURI);
+        if (!disableCache) {
+            if (checkETagMatch(request, eTagName)
+                   || checkLastModify(request)) {
+               // response.sendError(HttpServletResponse.SC_NOT_MODIFIED); 
+               response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+               return;
+            }
+       }
+        
         InputStream inputStream = this.getClass().getResourceAsStream(webjarsResourceURI);
         if (inputStream != null) {
             if (!disableCache) {
-                prepareCacheHeaders(response, webjarsResourceURI);
+                prepareCacheHeaders(response, eTagName);
             }
             String filename = getFileName(webjarsResourceURI);
             String mimeType = request.getSession().getServletContext().getMimeType(filename);
@@ -72,7 +83,8 @@ public class WebjarsServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
-
+    
+    
     /**
      *
      * @param webjarsResourceURI
@@ -83,19 +95,54 @@ public class WebjarsServlet extends HttpServlet {
         return tokens[tokens.length - 1];
     }
 
+    
+    /**
+     * 
+     * @param webjarsResourceURI
+     * @return
+     */
+    private String getETagName(String webjarsResourceURI) {
+    	
+    	String[] tokens = webjarsResourceURI.split("/");
+        String version = tokens[5];
+        String fileName = tokens[tokens.length - 1];
+
+        String eTag = fileName + "_" + version;
+        return eTag;
+    }
+    
+    /**
+     * 
+     * @param request
+     * @param eTagName
+     * @return
+     */
+    private boolean checkETagMatch(HttpServletRequest request, String eTagName) {
+    
+       String token = request.getHeader("If-None-Match");
+       return (token == null ? false: token.equals(eTagName));
+    }
+
+    /**
+     * 
+     * @param request
+     * @return
+     */
+    private boolean checkLastModify(HttpServletRequest request) {
+    	
+       long last = request.getDateHeader("If-Modified-Since");
+       return (last == -1L? false : (last - System.currentTimeMillis() > 0L));
+    }
     /**
      *
      * @param response
      * @param webjarsResourceURI
      */
-    private void prepareCacheHeaders(HttpServletResponse response, String webjarsResourceURI) {
-        String[] tokens = webjarsResourceURI.split("/");
-        String version = tokens[5];
-        String fileName = tokens[tokens.length - 1];
-
-        String eTag = fileName + "_" + version;
+    private void prepareCacheHeaders(HttpServletResponse response, String eTag) {
+        
         response.setHeader("ETag", eTag);
         response.setDateHeader("Expires", System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_MS);
+        response.addDateHeader("Last-Modified", System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_MS); 
         response.addHeader("Cache-Control", "private, max-age=" + DEFAULT_EXPIRE_TIME_S);
     }
 
