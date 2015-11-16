@@ -1,15 +1,16 @@
 package org.webjars.servlet;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>This servlet enables Servlet 2.x compliant containers to serve up Webjars resources</p>
@@ -29,7 +30,9 @@ import java.util.logging.Logger;
  */
 public class WebjarsServlet extends HttpServlet {
 
-    private static final Logger logger = Logger.getLogger(WebjarsServlet.class.getName());
+	private static final long serialVersionUID = 1L;
+
+	private static final Logger logger = Logger.getLogger(WebjarsServlet.class.getName());
 
     private static final long DEFAULT_EXPIRE_TIME_MS = 86400000L; // 1 day
     private static final long DEFAULT_EXPIRE_TIME_S = 86400L; // 1 day
@@ -60,6 +63,7 @@ public class WebjarsServlet extends HttpServlet {
         logger.log(Level.INFO, "Webjars resource requested: " + webjarsResourceURI);
         
         String eTagName = this.getETagName(webjarsResourceURI);
+        
         if (!disableCache) {
             if (checkETagMatch(request, eTagName)
                    || checkLastModify(request)) {
@@ -68,6 +72,7 @@ public class WebjarsServlet extends HttpServlet {
                return;
             }
        }
+       
         
         InputStream inputStream = this.getClass().getResourceAsStream(webjarsResourceURI);
         if (inputStream != null) {
@@ -75,7 +80,8 @@ public class WebjarsServlet extends HttpServlet {
                 prepareCacheHeaders(response, eTagName);
             }
             String filename = getFileName(webjarsResourceURI);
-            String mimeType = request.getSession().getServletContext().getMimeType(filename);
+            String mimeType = getMimeType(request, filename);
+            
             response.setContentType(mimeType != null? mimeType:"application/octet-stream");
             copy(inputStream, response.getOutputStream());
         } else {
@@ -83,7 +89,6 @@ public class WebjarsServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
-    
     
     /**
      *
@@ -133,6 +138,23 @@ public class WebjarsServlet extends HttpServlet {
        long last = request.getDateHeader("If-Modified-Since");
        return (last == -1L? false : (last - System.currentTimeMillis() > 0L));
     }
+    
+    /**
+     * @param request
+     * @param filename
+     * 
+     * @return mimeType OR null
+     */
+    private String getMimeType(HttpServletRequest request, String filename) {
+    	
+        if (request == null
+            || request.getSession() == null
+            || request.getSession().getServletContext() == null) {
+            return null;
+        }
+        return request.getSession().getServletContext().getMimeType(filename);
+    }
+    
     /**
      *
      * @param response
