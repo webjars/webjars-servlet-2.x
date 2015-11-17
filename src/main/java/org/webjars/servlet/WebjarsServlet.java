@@ -29,8 +29,10 @@ import java.util.logging.Logger;
  */
 public class WebjarsServlet extends HttpServlet {
 
+    private static final long serialVersionUID = 1L;
+    
     private static final Logger logger = Logger.getLogger(WebjarsServlet.class.getName());
-
+    
     private static final long DEFAULT_EXPIRE_TIME_MS = 86400000L; // 1 day
     private static final long DEFAULT_EXPIRE_TIME_S = 86400L; // 1 day
 
@@ -60,6 +62,7 @@ public class WebjarsServlet extends HttpServlet {
         logger.log(Level.INFO, "Webjars resource requested: " + webjarsResourceURI);
         
         String eTagName = this.getETagName(webjarsResourceURI);
+        
         if (!disableCache) {
             if (checkETagMatch(request, eTagName)
                    || checkLastModify(request)) {
@@ -68,6 +71,7 @@ public class WebjarsServlet extends HttpServlet {
                return;
             }
        }
+       
         
         InputStream inputStream = this.getClass().getResourceAsStream(webjarsResourceURI);
         if (inputStream != null) {
@@ -75,7 +79,8 @@ public class WebjarsServlet extends HttpServlet {
                 prepareCacheHeaders(response, eTagName);
             }
             String filename = getFileName(webjarsResourceURI);
-            String mimeType = request.getSession().getServletContext().getMimeType(filename);
+            String mimeType = this.getServletContext().getMimeType(filename);
+            
             response.setContentType(mimeType != null? mimeType:"application/octet-stream");
             copy(inputStream, response.getOutputStream());
         } else {
@@ -83,7 +88,6 @@ public class WebjarsServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
-    
     
     /**
      *
@@ -133,6 +137,7 @@ public class WebjarsServlet extends HttpServlet {
        long last = request.getDateHeader("If-Modified-Since");
        return (last == -1L? false : (last - System.currentTimeMillis() > 0L));
     }
+    
     /**
      *
      * @param response
