@@ -64,7 +64,7 @@ public class WebjarsServlet extends HttpServlet {
         String eTagName = this.getETagName(webjarsResourceURI);
         
         if (eTagName.equals("")) {
-        	response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
         
         if (!disableCache) {
@@ -119,7 +119,7 @@ public class WebjarsServlet extends HttpServlet {
          * [0,------ 1, ------- 2, ----- 3, ---- 4, ---- 5, ------- 6]
          */
         if (tokens.length < 7) {
-        	return "";
+            return "";
         }
         
         String version = tokens[5];
