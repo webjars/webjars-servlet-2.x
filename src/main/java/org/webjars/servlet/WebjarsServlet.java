@@ -63,9 +63,11 @@ public class WebjarsServlet extends HttpServlet {
         
         String eTagName = this.getETagName(webjarsResourceURI);
         
+        /*
         if (eTagName.equals("")) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
+        */
         
         if (!disableCache) {
             if (checkETagMatch(request, eTagName)
@@ -109,7 +111,7 @@ public class WebjarsServlet extends HttpServlet {
      * @param webjarsResourceURI
      * @return
      */
-    private String getETagName(String webjarsResourceURI) {
+    public final String getETagName(String webjarsResourceURI) {
         
         String[] tokens = webjarsResourceURI.split("/");
         
@@ -118,9 +120,12 @@ public class WebjarsServlet extends HttpServlet {
          * [, META-INF, resources, webjars, jquery, 1.11.3, jquery.js] 
          * [0,------ 1, ------- 2, ----- 3, ---- 4, ---- 5, ------- 6]
          */
+        
+        /*
         if (tokens.length < 7) {
             return "";
         }
+        */
         
         String version = tokens[5];
         String fileName = tokens[tokens.length - 1];
