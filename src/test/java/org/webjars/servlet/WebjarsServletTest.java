@@ -30,16 +30,16 @@ public class WebjarsServletTest {
     }
 
     /*
-     * throw ArrayIndexOutOfBoundsException
+     * fix the ArrayIndexOutOfBoundsException to return empty string.
      */
-    @Test(expected=ArrayIndexOutOfBoundsException.class)
+    @Test
     public void testExceptionGetETagName() {
         
         String webjarsResourceURI = "/META-INF/resources/webjars/jquery";
         
         String eTagName = webjarsServlet.getETagName(webjarsResourceURI);
         
-        Assert.assertEquals("jquery.js_1.11.3", eTagName);
+        Assert.assertEquals("", eTagName);
         
     }
 }
