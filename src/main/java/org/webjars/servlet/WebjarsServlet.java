@@ -65,6 +65,7 @@ public class WebjarsServlet extends HttpServlet {
         
         if (eTagName.equals("")) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
         }
         
         if (!disableCache) {
