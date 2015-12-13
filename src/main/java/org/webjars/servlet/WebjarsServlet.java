@@ -75,14 +75,18 @@ public class WebjarsServlet extends HttpServlet {
         
         InputStream inputStream = this.getClass().getResourceAsStream(webjarsResourceURI);
         if (inputStream != null) {
-            if (!disableCache) {
-                prepareCacheHeaders(response, eTagName);
+            try {
+                if (!disableCache) {
+                    prepareCacheHeaders(response, eTagName);
+                }
+                String filename = getFileName(webjarsResourceURI);
+                String mimeType = this.getServletContext().getMimeType(filename);
+
+                response.setContentType(mimeType != null ? mimeType : "application/octet-stream");
+                copy(inputStream, response.getOutputStream());
+            } finally {
+                inputStream.close();
             }
-            String filename = getFileName(webjarsResourceURI);
-            String mimeType = this.getServletContext().getMimeType(filename);
-            
-            response.setContentType(mimeType != null? mimeType:"application/octet-stream");
-            copy(inputStream, response.getOutputStream());
         } else {
             // return HTTP error
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
