@@ -48,7 +48,7 @@ public class WebjarsServlet extends HttpServlet {
             String disableCache = config.getInitParameter("disableCache");
             if (disableCache != null) {
                 this.disableCache = Boolean.parseBoolean(disableCache);
-                logger.log(Level.INFO, "WebjarsServlet cache enabled: " + !this.disableCache);
+                logger.log(Level.INFO, "WebjarsServlet cache enabled: {0}", !this.disableCache);
             }
         } catch (Exception e) {
             logger.log(Level.WARNING, "The WebjarsServlet configuration parameter \"disableCache\" is invalid");
@@ -59,7 +59,7 @@ public class WebjarsServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String webjarsResourceURI = "/META-INF/resources" + request.getRequestURI().replaceFirst(request.getContextPath(), "");
-        logger.log(Level.INFO, "Webjars resource requested: " + webjarsResourceURI);
+        logger.log(Level.INFO, "Webjars resource requested: {0}", webjarsResourceURI);
         
         String eTagName = this.getETagName(webjarsResourceURI);
         
