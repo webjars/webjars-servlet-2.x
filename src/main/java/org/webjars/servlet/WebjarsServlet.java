@@ -59,7 +59,7 @@ public class WebjarsServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String webjarsResourceURI = "/META-INF/resources" + request.getRequestURI().replaceFirst(request.getContextPath(), "");
-        logger.log(Level.INFO, "Webjars resource requested: {0}", webjarsResourceURI);
+        logger.log(Level.FINE, "Webjars resource requested: {0}", webjarsResourceURI);
         
         String eTagName = this.getETagName(webjarsResourceURI);
         
