@@ -48,7 +48,7 @@ public class WebjarsServlet extends HttpServlet {
             String disableCache = config.getInitParameter("disableCache");
             if (disableCache != null) {
                 this.disableCache = Boolean.parseBoolean(disableCache);
-                logger.log(Level.INFO, "WebjarsServlet cache enabled: " + !this.disableCache);
+                logger.log(Level.INFO, "WebjarsServlet cache enabled: {0}", !this.disableCache);
             }
         } catch (Exception e) {
             logger.log(Level.WARNING, "The WebjarsServlet configuration parameter \"disableCache\" is invalid");
@@ -59,8 +59,7 @@ public class WebjarsServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String webjarsResourceURI = "/META-INF/resources" + request.getRequestURI().replaceFirst(request.getContextPath(), "");
-        logger.log(Level.FINE, "Webjars resource requested: " + webjarsResourceURI);
-        
+        logger.log(Level.FINE, "Webjars resource requested: {0}", webjarsResourceURI);
         String eTagName = this.getETagName(webjarsResourceURI);
         
         if (!disableCache) {
@@ -75,14 +74,18 @@ public class WebjarsServlet extends HttpServlet {
         
         InputStream inputStream = this.getClass().getResourceAsStream(webjarsResourceURI);
         if (inputStream != null) {
-            if (!disableCache) {
-                prepareCacheHeaders(response, eTagName);
+            try {
+                if (!disableCache) {
+                    prepareCacheHeaders(response, eTagName);
+                }
+                String filename = getFileName(webjarsResourceURI);
+                String mimeType = this.getServletContext().getMimeType(filename);
+
+                response.setContentType(mimeType != null ? mimeType : "application/octet-stream");
+                copy(inputStream, response.getOutputStream());
+            } finally {
+                inputStream.close();
             }
-            String filename = getFileName(webjarsResourceURI);
-            String mimeType = this.getServletContext().getMimeType(filename);
-            
-            response.setContentType(mimeType != null? mimeType:"application/octet-stream");
-            copy(inputStream, response.getOutputStream());
         } else {
             // return HTTP error
             response.sendError(HttpServletResponse.SC_NOT_FOUND);

@@ -10,7 +10,7 @@ Implements a Servlet to enable Webjars resources for Servlet 2.x API compliant J
     <dependency>
         <groupId>org.webjars</groupId>
         <artifactId>webjars-servlet-2.x</artifactId>
-        <version>1.1</version>
+        <version>1.3</version>
     </dependency>
     ```
 
