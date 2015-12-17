@@ -63,6 +63,11 @@ public class WebjarsServlet extends HttpServlet {
         
         String eTagName = this.getETagName(webjarsResourceURI);
         
+        if (eTagName.equals("")) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+        
         if (!disableCache) {
             if (checkETagMatch(request, eTagName)
                    || checkLastModify(request)) {
@@ -70,7 +75,7 @@ public class WebjarsServlet extends HttpServlet {
                response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
                return;
             }
-       }
+        }
        
         
         InputStream inputStream = this.getClass().getResourceAsStream(webjarsResourceURI);
@@ -109,9 +114,20 @@ public class WebjarsServlet extends HttpServlet {
      * @param webjarsResourceURI
      * @return
      */
-    private String getETagName(String webjarsResourceURI) {
-    	
-    	String[] tokens = webjarsResourceURI.split("/");
+    public final String getETagName(String webjarsResourceURI) {
+        
+        String[] tokens = webjarsResourceURI.split("/");
+        
+        /* 
+         * the tokens like :
+         * [, META-INF, resources, webjars, jquery, 1.11.3, jquery.js] 
+         * [0,------ 1, ------- 2, ----- 3, ---- 4, ---- 5, ------- 6]
+         */
+        
+        if (tokens.length < 7) {
+            return "";
+        }
+        
         String version = tokens[5];
         String fileName = tokens[tokens.length - 1];
 
@@ -137,7 +153,7 @@ public class WebjarsServlet extends HttpServlet {
      * @return
      */
     private boolean checkLastModify(HttpServletRequest request) {
-    	
+    
        long last = request.getDateHeader("If-Modified-Since");
        return (last == -1L? false : (last - System.currentTimeMillis() > 0L));
     }
