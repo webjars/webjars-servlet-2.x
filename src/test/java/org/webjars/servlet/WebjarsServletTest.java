@@ -65,7 +65,7 @@ public class WebjarsServletTest {
     }
 
     @Test
-    public void shouldSendForbiddenForInsufficientFileRequest() throws Exception {
+    public void shouldSendNotFoundForInsufficientFileRequest() throws Exception {
         when(request.getRequestURI()).thenReturn(ANY_CONTEXT_PATH + "/foo/bar.js");
 
         sut.doGet(request, response);
