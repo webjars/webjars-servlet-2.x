@@ -128,7 +128,7 @@ public class WebjarsServlet extends HttpServlet {
     private String getETagName(String webjarsResourceURI) {
     	
     	String[] tokens = webjarsResourceURI.split("/");
-        if (tokens.length < 6) {
+        if (tokens.length < 7) {
             throw new IllegalArgumentException("insufficient URL has given: " + webjarsResourceURI);
         }
         String version = tokens[5];
