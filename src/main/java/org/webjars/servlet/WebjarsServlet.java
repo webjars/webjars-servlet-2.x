@@ -62,7 +62,7 @@ public class WebjarsServlet extends HttpServlet {
         logger.log(Level.FINE, "Webjars resource requested: {0}", webjarsResourceURI);
 
         if (isDirectoryRequest(webjarsResourceURI)) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 

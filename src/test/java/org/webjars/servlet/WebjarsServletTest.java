@@ -61,7 +61,7 @@ public class WebjarsServletTest {
 
         sut.doGet(request, response);
 
-        verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+        verify(response).sendError(HttpServletResponse.SC_FORBIDDEN);
     }
 
     @Test
