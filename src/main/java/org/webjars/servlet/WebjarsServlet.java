@@ -60,8 +60,19 @@ public class WebjarsServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String webjarsResourceURI = "/META-INF/resources" + request.getRequestURI().replaceFirst(request.getContextPath(), "");
         logger.log(Level.FINE, "Webjars resource requested: {0}", webjarsResourceURI);
-        
-        String eTagName = this.getETagName(webjarsResourceURI);
+
+        if (isDirectoryRequest(webjarsResourceURI)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        String eTagName;
+        try {
+            eTagName = this.getETagName(webjarsResourceURI);
+        } catch (IllegalArgumentException e) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
         
         if (!disableCache) {
             if (checkETagMatch(request, eTagName)
@@ -92,7 +103,11 @@ public class WebjarsServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
-    
+
+    private static boolean isDirectoryRequest(String uri) {
+        return uri.endsWith("/");
+    }
+
     /**
      *
      * @param webjarsResourceURI
@@ -108,10 +123,14 @@ public class WebjarsServlet extends HttpServlet {
      * 
      * @param webjarsResourceURI
      * @return
+     * @throws IllegalArgumentException when insufficient URI has given
      */
     private String getETagName(String webjarsResourceURI) {
     	
     	String[] tokens = webjarsResourceURI.split("/");
+        if (tokens.length < 7) {
+            throw new IllegalArgumentException("insufficient URL has given: " + webjarsResourceURI);
+        }
         String version = tokens[5];
         String fileName = tokens[tokens.length - 1];
 
