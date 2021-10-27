@@ -45,10 +45,32 @@ public class WebjarsServletTest {
     }
 
     @Test
-    public void shouldWriteContentForFileAvailable() throws Exception {
-        when(request.getRequestURI()).thenReturn(ANY_CONTEXT_PATH + "/webjars/foo/1.0/bar.js");
+    public void shouldWriteContentForAvailableFile() throws Exception {
+    	shouldWriteContentForAvailableFile("/webjars/foo/1.0/bar.js");
+    }
+
+    @Test
+    public void shouldWriteContentForAvailableFileInSubFolder() throws Exception {
+    	shouldWriteContentForAvailableFile("/webjars/foo/1.0/sub/bar.js");
+    }
+
+    @Test
+    public void shouldWriteContentForAvailableFileVersionAgnostic() throws Exception {
+    	shouldWriteContentForAvailableFile("/webjars/foo/bar.js");
+    }
+
+    @Test
+    public void shouldWriteContentForAvailableFileInSubFolderVersionAgnostic() throws Exception {
+        shouldWriteContentForAvailableFile("/webjars/foo/sub/bar.js");
+    }
+
+    private void shouldWriteContentForAvailableFile(String path) throws Exception {
+        when(request.getRequestURI()).thenReturn(ANY_CONTEXT_PATH + path);
+        when(request.getServletPath()).thenReturn("/webjars/");
+        
         when(servletContext.getMimeType("bar.js")).thenReturn("application/javascript");
 
+        sut.init();
         sut.doGet(request, response);
 
         verify(servletOutputStream, atLeastOnce()).write(any(byte[].class), anyInt(), anyInt());
@@ -57,7 +79,16 @@ public class WebjarsServletTest {
 
     @Test
     public void shouldSendForbiddenForDirectoryRequest() throws Exception {
-        when(request.getRequestURI()).thenReturn(ANY_CONTEXT_PATH + "/webjars/foo/1.0/");
+        shouldSendForbiddenForDirectoryRequest("/webjars/foo/1.0/");
+    }
+
+    @Test
+    public void shouldSendForbiddenForDirectoryRequestVersionAgnostic() throws Exception {
+        shouldSendForbiddenForDirectoryRequest("/webjars/foo/sub/");
+    }
+
+    private void shouldSendForbiddenForDirectoryRequest(String path) throws Exception {
+        when(request.getRequestURI()).thenReturn(ANY_CONTEXT_PATH + path);
 
         sut.doGet(request, response);
 
@@ -66,7 +97,21 @@ public class WebjarsServletTest {
 
     @Test
     public void shouldSendNotFoundForInsufficientFileRequest() throws Exception {
-        when(request.getRequestURI()).thenReturn(ANY_CONTEXT_PATH + "/foo/bar.js");
+        shouldSendNotFound("/foo/bar.js");
+    }
+
+    @Test
+    public void shouldSendNotFoundForNonExistingFileRequest() throws Exception {
+        shouldSendNotFound("/webjars/foo/1.0/wrong.js");
+    }
+
+    @Test
+    public void shouldSendNotFoundForNonExistingFileRequestVersionAgnostic() throws Exception {
+        shouldSendNotFound("/webjars/foo/bar/wrong.js");
+    }
+
+    private void shouldSendNotFound(String path) throws Exception {
+        when(request.getRequestURI()).thenReturn(ANY_CONTEXT_PATH + path);
 
         sut.doGet(request, response);
 
